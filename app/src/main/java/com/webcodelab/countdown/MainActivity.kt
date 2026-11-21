@@ -228,6 +228,18 @@ class MainActivity : Activity() {
         btnRow.addView(start, LinearLayout.LayoutParams(0, dp(54), 2f))
         root.addView(btnRow, LinearLayout.LayoutParams(MATCH, WRAP).apply { topMargin = dp(20) })
 
+        // ---------- SMS Inbox ----------
+        val sms = Button(this).apply {
+            text = "📩  SMS Inbox"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            typeface = Typeface.DEFAULT_BOLD
+            stateListAnimator = null
+            background = pill("#26FFFFFF", 28, "#66FFFFFF")
+            setOnClickListener { startActivity(Intent(this@MainActivity, SmsActivity::class.java)) }
+        }
+        root.addView(sms, LinearLayout.LayoutParams(MATCH, dp(52)).apply { topMargin = dp(16) })
+
         // ---------- WhatsApp support ----------
         val wa = Button(this).apply {
             text = "💬  Support on WhatsApp"
@@ -238,7 +250,7 @@ class MainActivity : Activity() {
             background = pill("#25D366", 28)
             setOnClickListener { openWhatsApp() }
         }
-        root.addView(wa, LinearLayout.LayoutParams(MATCH, dp(52)).apply { topMargin = dp(28) })
+        root.addView(wa, LinearLayout.LayoutParams(MATCH, dp(52)).apply { topMargin = dp(16) })
 
         root.addView(TextView(this).apply {
             text = "© WebCodelab  •  WCL"
