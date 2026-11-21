@@ -38,26 +38,43 @@ class MainActivity : Activity() {
         setContentView(root)
 
         val end = getSharedPreferences("cd", MODE_PRIVATE).getLong("end", 0)
-        if (end > System.currentTimeMillis()) run(end)
+        if (end > System.currentTimeMillis()) runTimer(end)
     }
 
     private fun alarmIntent(msg: String): PendingIntent {
         val i = Intent(this, AlarmReceiver::class.java).putExtra("msg", msg)
-        return PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getBroadcast(
+            this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun startCountdown() {
-        val min = etMin.text.toString().toLongOrNull() ?: return
+        val min = etMin.text.toString().toLongOrNull()
+        if (min == null || min <= 0) {
+            Toast.makeText(this, "Minute daalo", Toast.LENGTH_SHORT).show()
+            return
+        }
         val msg = etMsg.text.toString().ifBlank { "Time ho gaya!" }
         val end = System.currentTimeMillis() + min * 60_000
-        getSharedPreferences("cd", MODE_PRIVATE).edit().putLong("end", end).apply()
-        val am = getSystemService(ALARM_SERVICE) as AlarmManager
-        val pi = alarmIntent(msg)
-        am.setAlarmClock(AlarmManager.AlarmClockInfo(end, pi), pi)
-        run(end)
+        try {
+            val am = getSystemService(ALARM_SERVICE) as AlarmManager
+            val pi = alarmIntent(msg)
+            val show = PendingIntent.getActivity(
+                this, 1, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
+            )
+            try {
+                am.setAlarmClock(AlarmManager.AlarmClockInfo(end, show), pi)
+            } catch (e: SecurityException) {
+                am.set(AlarmManager.RTC_WAKEUP, end, pi)
+            }
+            getSharedPreferences("cd", MODE_PRIVATE).edit().putLong("end", end).apply()
+            runTimer(end)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error: " + e.message, Toast.LENGTH_LONG).show()
+        }
     }
 
-    private fun run(end: Long) {
+    private fun runTimer(end: Long) {
         timer?.cancel()
         timer = object : CountDownTimer(end - System.currentTimeMillis(), 1000) {
             override fun onTick(ms: Long) {
